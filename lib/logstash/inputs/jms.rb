@@ -158,22 +158,24 @@ class LogStash::Inputs::Jms < LogStash::Inputs::Threadable
         event.set("@timestamp", LogStash::Timestamp.at(msg.jms_timestamp / 1000, (msg.jms_timestamp % 1000) * 1000))
       end
 
-      if @include_header
+      if @include_header && msg.attributes
         msg.attributes.each do |field, value|
           event.set(field.to_s, value)
         end
       end
 
-      if @include_properties
+      if @include_properties && msg.properties
         msg.properties.each do |field, value|
           event.set(field.to_s, value)
         end
       end
 
       decorate(event)
+      puts 'adding event'
       output_queue << event
 
     rescue => e # parse or event creation error
+      puts "failed to create event #{e}"
       @logger.error("Failed to create event", :message => msg, :exception => e,
                     :backtrace => e.backtrace);
     end

@@ -27,4 +27,20 @@ describe LogStash::Inputs::Jms do
       subject.run(queue)
     end
   end
+
+  context 'if message properties or headers are absent from message' do
+    let (:msg) { double }
+    let(:queue) { double }
+    let(:jms_config) {{:include_body => false}}
+
+    before :each do
+      allow(msg).to receive(:properties).and_return nil
+      allow(msg).to receive(:attributes).and_return nil
+    end
+
+    it 'should still create the event' do
+      expect(queue).to receive(:<<)
+      expect{subject.send('queue_event', msg, queue)}.not_to raise_error
+    end
+  end
 end
